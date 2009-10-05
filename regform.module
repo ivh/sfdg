@@ -1,0 +1,465 @@
+<?php
+// $Id$
+
+/**
+* Display help and module information
+* @param path which path of the site we're displaying help
+* @param arg array that holds the current path as would be returned from arg() function
+* @return help text for the path
+*/
+function regform_help($path, $arg) {
+  $output = '';
+  switch ($path) {
+    case "admin/help#regform":
+      $output = '<p>'.  t("Handles a registration form.") .'</p>';
+      break;
+  }
+  return $output;
+}
+
+function regform_perm() {
+  return array('access regform content');
+}
+
+function regform_form($form_state) {
+  $form['person'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Personal data'),
+//    '#tree' => TRUE,
+  );
+  $form['person']['fname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('First name'),
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#description' => t(''),
+    '#default_value' =>  variable_get('fname', ''),
+    '#required' => TRUE,
+  );
+  $form['person']['lname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Last name'),
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#description' => t(''),
+    '#default_value' =>  variable_get('lname', ''),
+    '#required' => TRUE,
+  );
+  $form['person']['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email-address'),
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#description' => t('Please double-check for typos.'),
+    '#default_value' =>  variable_get('email', ''),
+    '#required' => TRUE,
+  );
+  $form['person']['affil'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Affiliation'),
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#description' => t(''),
+    '#default_value' =>  variable_get('affil', ''),
+    '#required' => TRUE,
+  );
+
+  $form['person']['address'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Address'),
+    '#default_value' =>  variable_get('address', ''),
+    '#cols' => 60,
+    '#rows' => 4,
+    '#description' => t('Please write your full address here.'),
+    '#required' => TRUE,
+  );
+
+  $form['prereg'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Pre-Registration'),
+    '#description' => t(''),
+  );
+  $form['prereg']['student'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Student?'),
+    '#default_value' => variable_get('reception', 0),
+    '#description' => t('Students, please check this box to get the reduced fee.'),
+  );
+  $form['prereg']['paymethod'] = array(
+    '#type' => 'radios',
+    '#title' => t('Payment method'),
+    '#default_value' =>  variable_get('acctype', 0),
+    '#options' => array(t('<strong>Bank transfer (preferred option).</strong> You will get the IBAN/BIC account numbers (and BankGiro for Swedish participants) on the next page.'),t('<strong>Credit card.</strong> You will find a link to a secure payment page where you can use your card (or PayPal account).')),
+    '#required' => TRUE,
+  );
+
+
+  $form['acco'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Accomodation'),
+    '#description' => t('More information about the venue <a href="venue.html">here</a>. If you cannot stay for the whole workshop, please choose your room option anyway and tell us your dates in the comment field below.'),
+  );
+  $form['acco']['acctype'] = array(
+    '#type' => 'radios',
+    '#title' => t('Type of accomodation'),
+    '#default_value' =>  variable_get('acctype', 0),
+    '#options' => array(t('Single room, Sep 28 - Oct 3, 580 EUR'),t('Shared double room, Sep 28 - Oct 3, 480 EUR'), t('Own accomodation, 120 EUR (see above)')),
+    '#required' => TRUE,
+  );
+
+  $form['contribution'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Contribution'),
+    '#description' => t('You can submit title and abstract at a later time <a href="/abstract.html">here</a>, but please indicate if you want to contribute.'),
+  );
+  $form['contribution']['contrtype'] = array(
+    '#type' => 'radios',
+    '#title' => t('Type of contribution'),
+    '#default_value' =>  variable_get('contrtype', 0),
+    '#options' => array(t('None'),t('Only talk'), t('Only poster'),t('If possible talk, poster otherwise.')),
+    '#description' => t(''),
+  );
+  $form['contribution']['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#default_value' => variable_get('title', ''),
+    '#size' => 60,
+    '#maxlength' => 256,
+    //'#required' => TRUE,
+  );
+  $form['contribution']['abstract'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Abstract'),
+    '#default_value' =>  variable_get('abstract', ''),
+    '#cols' => 60,
+    '#rows' => 10,
+    '#description' => t('Write your abstract here.'),
+  );
+
+  $form['comment'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Comment'),
+    '#description' => t('If you want to tell us anything else, please do so here.'),
+  );
+  $form['comment']['commentcont'] = array(
+    '#type' => 'textarea',
+    '#default_value' =>  variable_get('abstract', ''),
+    '#cols' => 60,
+    '#rows' => 10,
+    '#description' => t('Write your comment here.'),
+  );
+
+
+  $form['final'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Submit'),
+    '#description' => t('If you have not requested otherwise in the comment field, your name will be added to the <a href="/participants.html">list of participants</a>.<br/><br/>'),
+  );
+  $form['final']['submit'] = array('#type' => 'submit', '#value' => t('REGISTER'));
+
+  return $form;
+}
+
+function regform_form_validate($form, &$form_state) {
+// if ($form_state['values']['update'] == 'UPDATE') {
+//   form_set_error('', t('You hit UPDATE. The values below are updated according to your choices. Please do not forget to press REGISTER to submit the form.'));
+// }
+}
+
+function regform_getallcontent($form_state) {
+  $output='';
+  foreach($form_state['values'] as $val) 
+	{
+		$output .= "-----\n";
+		$output .= "$val"."\n";
+	}
+  return $output;
+}
+
+function regform_handleexit(&$form_state) {
+  if ($form_state['values']['paymethod'] == 0) {
+    $form_state['redirect']='paybank.html';
+    drupal_set_message(t('Thank you for registering. A confirmation email has been sent to you. Please follow the payment instructions below.'));
+  } elseif ($form_state['values']['paymethod'] == 1) {
+    $form_state['redirect']='paycard.html';
+    drupal_set_message(t('Thank you for registering. A confirmation email has been sent to you. Please follow the payment instructions below.'));
+  } else {
+    $form_state['redirect']=FALSE;
+    drupal_set_message(t('This should not have happened, please try again.'));
+  }
+}
+
+function regform_sendconfmail($form_state) {
+  $recip=$form_state['values']['email'];
+  $subject='Workshop registration';
+
+  $mailtext  = 'Thank you for registering for the workshop on Crete about' . "\r\n";
+  $mailtext .= '"Star-Forming Dwarf Galaxies: following Ariadne\'s thread in' . "\r\n";
+  $mailtext .= 'the cosmic labyrinth", from Sep 29 to Oct 3, 2008.' . "\r\n";
+  $mailtext .= '' . "\r\n";
+  $mailtext .= 'If you have not payed the pre-registration fee already, please visit' . "\r\n";
+  $mailtext .= 'one of the following links to do so, at the latest by Sep 1, 2008:' . "\r\n";
+  $mailtext .= 'http://star-forming-dwarfs.org/paybank.html' . "\r\n";
+  $mailtext .= 'http://star-forming-dwarfs.org/paycard.html' . "\r\n";
+  $mailtext .= '' . "\r\n";
+  $mailtext .= 'Also be reminded to book your travel to the island of Crete. You can' . "\r\n";
+  $mailtext .= 'find some information about this here:' . "\r\n";
+  $mailtext .= 'http://star-forming-dwarfs.org/venue.html' . "\r\n";
+  $mailtext .= '' . "\r\n";
+  $mailtext .= '' . "\r\n";
+  $mailtext .= 'Kind regards' . "\r\n";
+  $mailtext .= 'Thomas Marquart, on behalf of the LOC' . "\r\n";
+
+  $header = 'From: registration@star-forming-dwarfs.org' . "\r\n";
+  $header .= 'MIME-Version: 1.0' . "\r\n";
+  $header .= 'Content-Type: text/plain; charset=ISO-8859-1' . "\r\n";
+
+  mail($recip, $subject, $mailtext, $header);
+}
+
+function regform_form_submit($form, &$form_state) {
+  mail('thomas@marquart.se', 'Workshop registration', regform_getallcontent($form_state), 'From: registration@star-forming-dwarfs.org'); 
+//  regform_sendconfmail($form_state);
+  regform_handleexit($form_state);
+}
+
+// START ABSTRACT FORM HERE
+
+function absform_form($form_state) {
+  $form['nametype'] = array(
+    '#type' => 'fieldset',
+//    '#title' => t(''),
+//    '#tree' => TRUE,
+  );
+  $form['nametype']['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#description' => t(''),
+    '#default_value' =>  variable_get('fname', ''),
+    '#required' => TRUE,
+  );
+
+  $form['nametype']['contrtype'] = array(
+    '#type' => 'radios',
+    '#title' => t('Type of contribution'),
+    '#default_value' =>  variable_get('contrtype', 0),
+    '#options' => array(t('None'),t('Only talk'), t('Only poster'),t('If possible talk, poster otherwise.'),t('Practical demonstration')),
+    '#description' => t('Your choice here will replace the one from the registration form, unless you submit a second contribution.'),
+    '#required' => TRUE,
+  );
+
+  $form['contrib'] = array(
+    '#type' => 'fieldset',
+  );
+
+  $form['contrib']['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#default_value' => variable_get('title', ''),
+    '#size' => 60,
+    '#maxlength' => 256,
+    '#required' => TRUE,
+  );
+  $form['contrib']['abstract'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Abstract'),
+    '#default_value' =>  variable_get('abstract', ''),
+    '#cols' => 60,
+    '#rows' => 10,
+    '#description' => t('Write your abstract here.'),
+    '#required' => TRUE,
+  );
+
+  $form['final'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Send the information'),
+//    '#description' => t('Click "submit" to send your abstract.<br/><br/>'),
+  );
+  $form['final']['submit'] = array('#type' => 'submit', '#value' => t('SUBMIT'));
+
+  return $form;
+}
+
+function absform_form_validate($form, &$form_state) {
+ if ($form_state['values']['contrtype'] == 0) {
+   form_set_error('', t('You have to make a choice for the "Type of contribution" other than "None".'));
+ }
+}
+
+
+
+function absform_form_submit($form, &$form_state) {
+  mail('thomas@marquart.se', 'Abstract submission', regform_getallcontent($form_state), 'From: registration@star-forming-dwarfs.org'); 
+  drupal_set_message(t('Thank you for submitting your abstract.'));
+}
+
+//START INTINERARY FORM HERE
+
+
+function itiform_form($form_state) {
+  $form['name'] = array(
+    '#type' => 'fieldset',
+//    '#title' => t(''),
+//    '#tree' => TRUE,
+  );
+  $form['name']['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#size' => 60,
+    '#maxlength' => 128,
+    '#description' => t(''),
+    '#default_value' =>  variable_get('fname', ''),
+    '#required' => TRUE,
+  );
+
+  $form['iti'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Itinerary'),
+  );
+  $form['iti']['whereto'] = array(
+    '#type' => 'radios',
+    '#title' => t('Where do you arrive?'),
+    '#default_value' =>  variable_get('whereto', 'Chania ariport'),
+    '#options' => array(
+	'Chania ariport' => t('Chania airport (CHQ)'),
+	'Heraklion Airport' => t('Heraklion Airport (HER)'), 
+	'Chania harbour' => t('Chania harbour'),t('Other'),
+	),
+    '#description' => t('Please indicate where you will travel to. If you choose "Other", please explain in the comment field below.'),
+    '#required' => TRUE,
+  );
+  $form['iti']['arrday'] = array(
+    '#type' => 'select',
+    '#title' => t('Arrival day'),
+    '#default_value' => variable_get('arrday','--'),
+    '#options' => array(
+	'--' => '--',
+	'Sep 24' => 'Sep 24',
+	'Sep 25' => 'Sep 25',
+	'Sep 26' => 'Sep 26',
+	'Sep 27' => 'Sep 27',
+	'Sep 28' => 'Sep 28',
+	'Sep 29' => 'Sep 29',
+	'Sep 30' => 'Sep 30',
+	'Oct 1' => 'Oct 1',
+	'Oct 2' => 'Oct 2',
+	),
+    '#required' => TRUE,
+  );
+  $form['iti']['arrtime'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Arrival time'),
+    '#default_value' => variable_get('arrtime','hh:mm'),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#required' => TRUE,
+    '#prefix' => '<div>',
+    '#suffix' => '</div>',
+  );
+
+  $form['iti']['flight'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Arrival flight number'),
+    '#default_value' => variable_get('flight', ''),
+    '#size' => 8,
+    '#maxlength' => 10,
+  );
+  $form['iti']['depday'] = array(
+    '#type' => 'select',
+    '#title' => t('Departure day'),
+    '#default_value' => variable_get('depday','--'),
+    '#options' => array(
+        '--' => '--',
+        'Sep 30' => 'Sep 30',
+        'Oct 1' => 'Oct 1',
+        'Oct 2' => 'Oct 2',
+        'Oct 3' => 'Oct 3',
+        'Oct 4' => 'Oct 4',
+        'Oct 5' => 'Oct 5',
+        'Oct 6' => 'Oct 6',
+        'Oct 7' => 'Oct 7',
+        'Oct 8' => 'Oct 8',
+        ),
+    '#required' => TRUE,
+  );
+  $form['iti']['deptime'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Departure time'),
+    '#default_value' => variable_get('deptime','hh:mm'),
+    '#size' => 5,
+    '#maxlength' => 5,
+    '#required' => TRUE,
+    '#prefix' => '<div>',
+    '#suffix' => '</div>',
+  );
+
+  $form['iti']['depflight'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Departure flight number'),
+    '#default_value' => variable_get('depflight', ''),
+    '#size' => 8,
+    '#maxlength' => 10,
+  );
+
+  $form['iti']['specialacco'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('I do <strong>not</strong> want to stay at the conference center for all nights between the dates indicated above.'),
+    '#default_value' => variable_get('specialacco', 0),
+    '#description' => t('Please explain below if you check this box.'),
+  );
+
+  $form['iti']['comment'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Comment'),
+    '#default_value' =>  variable_get('comment', ''),
+    '#cols' => 60,
+    '#rows' => 10,
+    '#description' => t('Write here to tell us anything else.'),
+  );
+
+  $form['final'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Send the information'),
+  );
+  $form['final']['submit'] = array('#type' => 'submit', '#value' => t('SUBMIT'));
+
+  return $form;
+}
+
+function itiform_form_validate($form, &$form_state) {
+// if ($form_state['values']['contrtype'] == 0) {
+//   form_set_error('', t('You have to make a choice for the "Type of contribution" other than "None".'));
+// }
+}
+
+
+
+function itiform_form_submit($form, &$form_state) {
+  mail('thomas@marquart.se', 'Travel submission', regform_getallcontent($form_state), 'From: registration@star-forming-dwarfs.org'); 
+  drupal_set_message(t('Thank you for submitting your travel information.'));
+}
+
+
+///// UPLOAD FORM
+function uplform_form($form_state) {
+ $form['#attributes'] = array('enctype' => "multipart/form-data");
+ $form['file_upload']=array('#type'=>'file','#title'=>'Filename');
+ $form['submit']=array('#type'=>'submit','#value'=>'Upload file');
+ return $form;
+}
+
+function uplform_form_submit($form, &$form_state) {
+  if ($file=file_save_upload('file_upload',array(),'sites/default/files',FILE_EXISTS_RENAME)) {
+  //file_copy($file->destination,'/home/tom/sfuploads/',FILE_EXISTS_RENAME);
+  system('chmod a-w,a+r /home/tom/sites/bcgconf/'.$file->destination);
+  system('cp /home/tom/sites/bcgconf/'.$file->destination.' /home/tom/sfuploads/' );
+  system('cp /home/tom/sites/bcgconf/'.$file->destination.' /home/tom/sites/moin/sfdg/pages/ProCeedings/attachments/' );
+  mail('thomas@marquart.se', 'File uploaded', 'scp hank1:sites/bcgconf/'.$file->destination, 'From: registration@star-forming-dwarfs.org');
+  drupal_set_message(t('Thank you for submitting the file.'));
+  } else {
+  drupal_set_message(t('Something went wrong.'));
+  }
+}   
+

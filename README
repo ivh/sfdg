@@ -1,0 +1,49 @@
+This contains things I wrote when organizing a conference: http://star-forming-dwarfs.org/
+
+The site is based on Drupal (http://drupal.org/) and the files
+regform.info and regform.module contain a drupal module, simply to
+be placed in the modules/ subdirectory of the druapl installation
+and activaed in the admin interface. It defines several forms using
+the drupal form API.
+
+The forms can be put into any drupal page with one of the following
+lines:
+<?php return drupal_get_form('uplform_form'); ?>
+<?php return drupal_get_form('regform_form'); ?>
+<?php return drupal_get_form('absform_form'); ?>
+<?php return drupal_get_form('itiform_form'); ?>
+
+On submission the contents get emailed to (hardcoded) adresses
+where, after manual inspection, I piped them to a python script
+(sfdg.py) using keybindings from within mutt (http://www.mutt.org)
+as follows:
+macro pager A "|/home/tom/py/sfdg/sfdg.py --reademails"
+macro index A "|/home/tom/py/sfdg/sfdg.py --reademails"
+macro pager T "|/home/tom/py/sfdg/sfdg.py --readtravel"
+macro index T "|/home/tom/py/sfdg/sfdg.py --readtravel"
+
+sfdg.py puts the data into a sqlite database that gets accessed
+from other pages within the website (see the .php files). 
+The database must exist beforehand, the layout is as follows:
+CREATE TABLE contr (id INTEGER PRIMARY KEY, pid INTEGER, type INTEGER, title TEXT, abstract TEXT, filename TEXT);
+CREATE TABLE pers (id INTEGER PRIMARY KEY, date TEXT, fname TEXT, lname TEXT, email TEXT, affil TEXT, addr TEXT, student INTEGER, paymeth INTEGER, accom INTEGER, comment TEXT, hastopay INTEGER, haspayed INTEGER, travelcomm TEXT, airport INTEGER, arrday TEXT, depday TEXT, arrtime TEXT, arrflight TEXT, deptime TEXT, deplight TEXT, notoac INTEGER);
+
+db.py finally provides an admin interface for manually editing and 
+displaying the data (making use of the files "head" and "foot"). I made 
+it available to the organizers via mod_python in the apache webserver 
+using the following config:
+
+<VirtualHost *:443>
+ServerName db.star-forming-dwarfs.org
+DocumentRoot /home/tom/sites/bcgconf-db/
+<Directory /home/tom/sites/bcgconf-db/>
+SetHandler mod_python
+PythonHandler db
+PythonDebug On
+AuthName "For your eyes only"
+AuthType Basic
+AuthUserFile /home/tom/sites/bcgconf-db/.htpasswd
+require valid-user
+</Directory>
+</VirtualHost>
+

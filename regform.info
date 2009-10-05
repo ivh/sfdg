@@ -1,0 +1,5 @@
+; $Id$
+name = RegForm
+description = Custom module for a registration form. /thomas marquart May 2008.
+core = 6.x
+version = 6.x-0.1
